@@ -3,29 +3,32 @@ var cheerio = require("cheerio");
 var fs = require("fs");
 var changeCase = require('change-case')
 var util = require('util')
-const r2 = require("r2");
-var async = require("async");
+
 
 var baseUrl = "https://scholar.google.com";
 
-var publications = []
-usering = getUser().then( (result) => {
-    console.log('done')
-    console.log(publications)
-    console.log(result)
-  })
+publications = getUser().then((result) => {
+  newLine(' END ');
+  // console.log('@@@', result.get());
+  a = result.get()
+  try {
+    a[0].then((result) => {
+      console.log(result)
+    })
+  }
+  catch(e) {
+    console.log('====', e);
+  }
+});
 
 async function getUser() {
   var url = baseUrl + "/citations?user=6F3Kj_8AAAAJ";
   var data = '';
   data = fs.readFileSync('test.txt', 'utf8');
   var $ = cheerio.load(data)
-  var result = [];
-  var publications = $('form div table tbody tr');
 
-  async.forEachOf(publications, async (value, index, callback) => {
-    if(index > 1) return;
-    element = value
+  var publications = await $('form div table tbody tr').map(async function (index, element) {
+    if(index > 0) return;
     var publication = {};
     trs = $(element)
     trs.children('td').map((index, element2) => {
@@ -49,68 +52,22 @@ async function getUser() {
     // console.log(JSON.stringify(publication, null, 4));
     newLine('*');
     publication = await getDetailsInfo(publication)
-      .then( (_) => {
+      .then( () => {
         newLine('#');
-        // console.log(publication)
-        // console.log(result)
-        result.push(publication);
-        return publication;
+        console.log(publication)
       })
-      result.push(publication);
-      console.log(publication)
-}, err => {
-    if (err) console.error(err.message);
-});
-
-  // for(index = 0; index<publications.length; index++) {
-  //   if(index > 1) return;
-  //   element = publications[index]
-  //   var publication = {};
-  //   trs = $(element)
-  //   trs.children('td').map((index, element2) => {
-  //     if(index == 0) {
-  //       td = $(element2.children[0])
-  //       publication.title = td.text();
-  //       publication.href = td.data('href');
-  //       td = $(element2.children[1])
-  //       td = $(element2.children[2])
-  //       publication.publisher = td.text()
-
-  //     }
-  //     else if(index == 1){
-  //       td = $(element2.children[0])
-  //       publication.citation = td.text()?td.text():0;
-  //     } else if(index == 2){
-  //       td = $(element2.children[0])
-  //       publication.publish_date = td.text()?td.text():0;
-  //     }
-  //   })
-  //   // console.log(JSON.stringify(publication, null, 4));
-  //   newLine('*');
-  //   publication = await getDetailsInfo(publication)
-  //     .then( (_) => {
-  //       newLine('#');
-  //       // console.log(publication)
-  //       // console.log(result)
-  //       result.push(publication);
-  //       return publication;
-  //     })
-  //     result.push(publication);
-  //     console.log(publication)
-  // }
-  // console.log(JSON.stringify('->', publications.get(), null, 2))
-  // .map(async function (index, element) {
-  // }) 
-  // publications = result; 
-  // console.log(result);
-  return result;
+  })
+  console.log(JSON.stringify('->', publications.get(), null, 2))
+  return publications;
 }
 
 async function getDetailsInfo(publication) {
   console.log('Details Fetching...');
-  // await request(baseUrl + publication.href, function(err, resp, body) {
-    body = await r2(baseUrl + publication.href).text
-    console.log(body);
+  const req = util.promisify(request)
+  await request(baseUrl + publication.href, function(err, resp, body) {
+    if (err) {
+      throw err;
+    }
     var $ = cheerio.load(body);
     var forms = $("form");
     //console.log(infos);
@@ -140,7 +97,7 @@ async function getDetailsInfo(publication) {
         // newLine();
       });
       // console.log(JSON.stringify(publication, null, 2));
-    // })
+    })
     return publication;
 }
 
