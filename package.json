@@ -1,0 +1,16 @@
+{
+  "name": "croner",
+  "version": "1.0.0",
+  "main": "app.js",
+  "author": "Rafik Farhad",
+  "license": "MIT",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.2",
+    "jQuery": "^1.7.4",
+    "mysql": "^2.16.0",
+    "request": "^2.88.0"
+  },
+  "devDependencies": {
+    "eslint": "^5.9.0"
+  }
+}
