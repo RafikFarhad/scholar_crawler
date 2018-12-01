@@ -5,27 +5,26 @@ var changeCase = require('change-case')
 var util = require('util')
 const r2 = require("r2");
 var async = require("async");
+require('dotenv').config();
+
 
 var baseUrl = "https://scholar.google.com";
 
-var publications = []
-usering = getUser().then( (result) => {
-    console.log('done')
-    console.log(publications)
-    console.log(result)
-  })
+getUser("6F3Kj_8AAAAJ");
 
-async function getUser() {
-  var url = baseUrl + "/citations?user=6F3Kj_8AAAAJ";
+async function getUser(user_id) {
+  var url = baseUrl + "/citations?user=" + user_id;
   var data = '';
   data = fs.readFileSync('test.txt', 'utf8');
-  var $ = cheerio.load(data)
+  data = await r2(url).text
+  console.log(data);
+  var $ = cheerio.load(data);
   var result = [];
   var publications = $('form div table tbody tr');
 
   async.forEachOf(publications, async (value, index, callback) => {
-    if(index > 1) return;
-    element = value
+    if(index > 0) return;
+    element = value;
     var publication = {};
     trs = $(element)
     trs.children('td').map((index, element2) => {
@@ -110,7 +109,8 @@ async function getDetailsInfo(publication) {
   console.log('Details Fetching...');
   // await request(baseUrl + publication.href, function(err, resp, body) {
     body = await r2(baseUrl + publication.href).text
-    console.log(body);
+    // body = fs.readFileSync('test2.txt', 'utf8');
+    // console.log(body);
     var $ = cheerio.load(body);
     var forms = $("form");
     //console.log(infos);
@@ -141,6 +141,17 @@ async function getDetailsInfo(publication) {
       });
       // console.log(JSON.stringify(publication, null, 2));
     // })
+    try {
+      request.post({url:process.env.PUSH_API, formData: publication},
+        function optionalCallback(err, httpResponse, body) {
+        if (err) {
+          return console.error('failed:', err.code);
+        }
+        console.log('Successful!  Server responded with:', body);
+      });
+    } catch(e) {
+      // console.error(e);
+    }
     return publication;
 }
 

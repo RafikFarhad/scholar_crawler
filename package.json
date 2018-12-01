@@ -8,6 +8,7 @@
     "async": "^2.6.1",
     "change-case": "^3.0.2",
     "cheerio": "^1.0.0-rc.2",
+    "dotenv": "^6.1.0",
     "jQuery": "^1.7.4",
     "mysql": "^2.16.0",
     "node-fetch": "^2.3.0",
